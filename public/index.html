@@ -1097,55 +1097,63 @@ function displayMessage(text, sender, repliedTo = null) {
         e.preventDefault();
         showMessageContextMenu(e);
     });
+const imagePattern = /(https?:\/\/[^\s]+\.(?:png|jpe?g|gif|webp))/gi;
+const audioPattern = /(https?:\/\/[^\s]+\.(?:mp3|ogg|wav|m4a))/gi;
+const videoPattern = /(https?:\/\/[^\s]+\.(?:mp4|webm|ogg))/gi;
 
-    const imagePattern = /(https?:\/\/[^\s]+\.(?:png|jpe?g|gif|webp))/gi;
-  const audioPattern = /(https?:\/\/[^\s]+\.(?:mp3|ogg|wav|m4a))/gi;
-  const videoPattern = /(https?:\/\/[^\s]+\.(?:mp4|webm|ogg))/gi;
+const imageMatches = [...text.matchAll(imagePattern)];
+const audioMatches = [...text.matchAll(audioPattern)];
+const videoMatches = [...text.matchAll(videoPattern)];
 
-  const imageMatches = [...text.matchAll(imagePattern)];
-  const audioMatches = [...text.matchAll(audioPattern)];
-  const videoMatches = [...text.matchAll(videoPattern)];
+let modifiedText = text;
+[...imageMatches, ...audioMatches, ...videoMatches].forEach(match => {
+  modifiedText = modifiedText.replace(match[0], '');
+});
 
-  let modifiedText = text;
-  [...imageMatches, ...audioMatches, ...videoMatches].forEach(match => {
-    modifiedText = modifiedText.replace(match[0], '');
+modifiedText = modifiedText.trim();
+
+const contentDiv = document.createElement('div');
+
+if (modifiedText) {
+  const textDiv = document.createElement('div');
+  textDiv.textContent = modifiedText;
+  contentDiv.appendChild(textDiv);
+}
+
+imageMatches.forEach(match => {
+  const img = document.createElement('img');
+  img.src = match[0];
+  img.alt = "Image";
+  img.loading = "lazy";
+
+  img.addEventListener('click', () => {
+    const win = window.open(match[0], '_blank');
+    win?.focus();
   });
 
-  modifiedText = modifiedText.trim();
-  if (modifiedText) {
-    const textDiv = document.createElement('div');
-    textDiv.textContent = modifiedText;
-    contentDiv.appendChild(textDiv);
-  }
+  contentDiv.appendChild(img);
+});
 
-  imageMatches.forEach(match => {
-    const img = document.createElement('img');
-    img.src = match[0];
-    img.alt = "Image";
-    contentDiv.appendChild(img);
-  });
+audioMatches.forEach(match => {
+  const audio = document.createElement('audio');
+  audio.controls = true;
+  audio.src = match[0];
+  contentDiv.appendChild(audio);
+});
 
-  audioMatches.forEach(match => {
-    const audio = document.createElement('audio');
-    audio.controls = true;
-    audio.src = match[0];
-    contentDiv.appendChild(audio);
-  });
+videoMatches.forEach(match => {
+  const video = document.createElement('video');
+  video.controls = true;
+  video.src = match[0];
+  contentDiv.appendChild(video);
+});
 
-  videoMatches.forEach(match => {
-    const video = document.createElement('video');
-    video.controls = true;
-    video.src = match[0];
-    video.className = 'chat-video';
-    contentDiv.appendChild(video);
-  });
+messageDiv.appendChild(avatarDiv);
+messageDiv.appendChild(contentDiv);
+chatContainer.appendChild(messageDiv);
+chatContainer.scrollTop = chatContainer.scrollHeight;
 
-    messageDiv.appendChild(avatarDiv);
-    messageDiv.appendChild(contentDiv);
-    chatContainer.appendChild(messageDiv);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-
-    return messageDiv; // <=== return the div!
+return messageDiv; // <=== return the div!
 }
 
 async function fetchChatResponse(userInput, waitingMsg = null) {
