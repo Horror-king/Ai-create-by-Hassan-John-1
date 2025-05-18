@@ -4,7 +4,7 @@ module.exports = {
   config: {
     name: "fastgen",
     aliases: ["fg", "fastgenerate"],
-    version: "2.3",
+    version: "2.4",
     author: "Allou Mohamed & ChatGPT",
     countDown: 8,
     role: 0,
@@ -46,7 +46,7 @@ module.exports = {
         return message.reply("❌ | Image generation failed. Try again later.");
       }
 
-      const reply = `🖼️ | Images for: "${prompt}"\n\n` + imageLinks.map((url, i) => `Image ${i + 1}: ${url}`).join("\n");
+      const reply = `🖼️ | Images for: "${prompt}"\n\n` + imageLinks.join("\n");
       return message.reply(reply);
 
     } catch (err) {
