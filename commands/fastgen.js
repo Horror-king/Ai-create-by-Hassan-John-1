@@ -4,7 +4,7 @@ module.exports = {
   config: {
     name: "fastgen",
     aliases: ["fg", "fastgenerate"],
-    version: "2.1",
+    version: "2.3",
     author: "Allou Mohamed & ChatGPT",
     countDown: 8,
     role: 0,
@@ -39,27 +39,15 @@ module.exports = {
         const res = await axios.get(`https://www.ai4chat.co/api/image/generate?prompt=${encodeURIComponent(prompt)}&aspect_ratio=${encodeURIComponent(aspectRatio)}`);
         if (res.data.image_link) {
           imageLinks.push(res.data.image_link);
-        } else {
-          console.warn(`No image on attempt ${i + 1}`);
         }
       }
 
-      if (imageLinks.length) {
-        for (const link of imageLinks) {
-          try {
-            const stream = await global.utils.getStreamFromURL(link);
-            await message.reply({
-              body: `🖼️ | Image generated for: "${prompt}"`,
-              attachment: stream
-            });
-          } catch (err) {
-            console.error("Failed to stream image:", err.message);
-            await message.reply(`❌ | Could not load an image. Skipping.`);
-          }
-        }
-      } else {
+      if (!imageLinks.length) {
         return message.reply("❌ | Image generation failed. Try again later.");
       }
+
+      const reply = `🖼️ | Images for: "${prompt}"\n\n` + imageLinks.map((url, i) => `Image ${i + 1}: ${url}`).join("\n");
+      return message.reply(reply);
 
     } catch (err) {
       console.error("[FastGen Error]", err.message);
