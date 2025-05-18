@@ -31,31 +31,35 @@ module.exports = {
     }
 
     try {
+      await message.reply("⏳ Generating images...");
+
       const imageLinks = [];
 
       for (let i = 0; i < 4; i++) {
         const res = await axios.get(`https://www.ai4chat.co/api/image/generate?prompt=${encodeURIComponent(prompt)}&aspect_ratio=${encodeURIComponent(aspectRatio)}`);
         if (res.data.image_link) {
           imageLinks.push(res.data.image_link);
+        } else {
+          console.warn(`No image on attempt ${i + 1}`);
         }
       }
 
-      if (!imageLinks.length) {
+      if (imageLinks.length) {
+        for (const link of imageLinks) {
+          try {
+            const stream = await global.utils.getStreamFromURL(link);
+            await message.reply({
+              body: `🖼️ | Image generated for: "${prompt}"`,
+              attachment: stream
+            });
+          } catch (err) {
+            console.error("Failed to stream image:", err.message);
+            await message.reply(`❌ | Could not load an image. Skipping.`);
+          }
+        }
+      } else {
         return message.reply("❌ | Image generation failed. Try again later.");
       }
-
-      // Notify about success
-      await message.reply(`🧠 Prompt: "${prompt}"\n🖼️ Aspect Ratio: ${aspectRatio}\nSending ${imageLinks.length} image(s)...`);
-
-      // Convert image links to stream attachments and send
-      const attachments = await Promise.all(
-        imageLinks.map(link => global.utils.getStreamFromURL(link))
-      );
-
-      await message.reply({
-        body: "",
-        attachment: attachments
-      });
 
     } catch (err) {
       console.error("[FastGen Error]", err.message);
